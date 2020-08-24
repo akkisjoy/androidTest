@@ -1,9 +1,15 @@
 package com.example.androidtest.model;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.SerializedName;
 
 import org.jetbrains.annotations.NotNull;
 
+@Entity(tableName = "LISTDATA")
 public class Data {
 
     private String country;
@@ -16,6 +22,9 @@ public class Data {
     private String title;
     private String type;
 
+    @PrimaryKey(autoGenerate = true)
+    public int id;
+
     @SerializedName("amt.pledged")
     private String amtPledged;
 
@@ -23,7 +32,7 @@ public class Data {
     private String endTime;
 
     @SerializedName("s.no")
-    private String sNo;
+    private String serialNo;
 
     @SerializedName("num.backers")
     private String numBackers;
@@ -103,6 +112,14 @@ public class Data {
         this.type = type;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getAmtPledged() {
         return amtPledged;
     }
@@ -119,12 +136,12 @@ public class Data {
         this.endTime = endTime;
     }
 
-    public String getsNo() {
-        return sNo;
+    public String getSerialNo() {
+        return serialNo;
     }
 
-    public void setsNo(String sNo) {
-        this.sNo = sNo;
+    public void setSerialNo(String serialNo) {
+        this.serialNo = serialNo;
     }
 
     public String getNumBackers() {
@@ -143,6 +160,27 @@ public class Data {
         this.percentageFunded = percentageFunded;
     }
 
+    public static DiffUtil.ItemCallback<Data> DIFF_CALLBACK = new DiffUtil.ItemCallback<Data>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Data oldItem, @NonNull Data newItem) {
+            return oldItem.id == newItem.id;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Data oldItem, @NonNull Data newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+
+        Data data = (Data) obj;
+        return data.id == this.id && data.serialNo == this.serialNo;
+    }
+
     @NotNull
     @Override
     public String toString() {
@@ -158,7 +196,7 @@ public class Data {
                 ", type='" + type + '\'' +
                 ", amtPledged='" + amtPledged + '\'' +
                 ", endTime='" + endTime + '\'' +
-                ", sNo='" + sNo + '\'' +
+                ", sNo='" + serialNo + '\'' +
                 ", numBackers='" + numBackers + '\'' +
                 ", percentageFunded='" + percentageFunded + '\'' +
                 '}';

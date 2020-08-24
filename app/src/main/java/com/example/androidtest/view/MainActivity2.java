@@ -14,23 +14,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidtest.R;
-import com.example.androidtest.adapter.DataAdapter;
+import com.example.androidtest.adapter.DataPageListAdapter;
 import com.example.androidtest.listener.RecyclerViewClickListener;
 import com.example.androidtest.listener.ResponseListener;
 import com.example.androidtest.model.Data;
-import com.example.androidtest.viewmodel.DataViewModel;
+import com.example.androidtest.viewmodel.DataListViewModel;
 
-import java.util.ArrayList;
-import java.util.List;
+public class MainActivity2 extends AppCompatActivity implements RecyclerViewClickListener {
 
-public class MainActivity extends AppCompatActivity implements RecyclerViewClickListener {
-
-    private DataViewModel dataViewModel;
+    private DataListViewModel dataViewModel;
     private RecyclerView recyclerView;
-    private DataAdapter dataAdapter;
-    private List<Data> dataList;
-    private int PAGE = 1;
-    private static final int COUNT = 20;
+    private DataPageListAdapter dataListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,53 +39,22 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
 
     }
 
-    private void initViewModel() {
-        dataViewModel = new ViewModelProvider(this).get(DataViewModel.class);
-
-        dataViewModel.callTheApi(PAGE, COUNT);
-
-        dataViewModel.getListLiveData().observe(this, this::loadData);
-
-        dataViewModel.isError.observe(this, aBoolean -> {
-
-        });
-    }
-
-    private void loadData(List<Data> data) {
-//        if (!isDataLoaded || dataList == null) {
-//            dataList = new ArrayList<>();
-//        }
-
-        dataAdapter.addDataList(data);
-        dataAdapter.notifyDataSetChanged();
-
-//        if (isDataLoaded) {
-//            dataAdapter.notifyDataSetChanged();
-//        }
-//        if (!isDataLoaded) {
-//            isDataLoaded = true;
-//        } else {
-//            dataAdapter.setLoaded();
-//        }
-
-        if (dataAdapter != null) {
-            dataAdapter.setOnLoadMoreListener(() -> {
-                if (dataList == null) {
-                    dataList = new ArrayList<>();
-                }
-                PAGE += 1;
-                dataViewModel.callTheApi(PAGE, COUNT);
-            });
-        }
-    }
-
     private void initView() {
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
 
-        dataAdapter = new DataAdapter(recyclerView, this);
-        recyclerView.setAdapter(dataAdapter);
+        dataListAdapter = new DataPageListAdapter(this);
+        recyclerView.setAdapter(dataListAdapter);
+    }
+
+    private void initViewModel() {
+        dataViewModel = new ViewModelProvider(this).get(DataListViewModel.class);
+        dataViewModel.getListData().observe(this, dataListAdapter::submitList);
+        dataViewModel.getNetworkState().observe(this, networkState -> {
+            dataListAdapter.setNetworkState(networkState);
+        });
+
     }
 
     @Override
@@ -115,12 +78,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                dataAdapter.filter(newText, false, new ResponseListener() {
-                    @Override
-                    public void onResponse(Object object) {
-
-                    }
-                });
+//                dataListAdapter.filter(newText, false, new ResponseListener() {
+//                    @Override
+//                    public void onResponse(Object object) {
+//
+//                    }
+//                });
                 return false;
             }
         });
@@ -130,6 +93,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
 
     @Override
     public void recyclerViewListClicked(Object object) {
-        DataDialog.show(MainActivity.this, (Data) object);
+        DataDialog.show(MainActivity2.this, (Data) object);
     }
 }

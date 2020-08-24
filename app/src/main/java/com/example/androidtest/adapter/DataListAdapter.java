@@ -7,12 +7,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.paging.PagedListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.RecyclerView.Adapter;
 
 import com.example.androidtest.R;
-import com.example.androidtest.listener.OnLoadMoreListener;
 import com.example.androidtest.listener.RecyclerViewClickListener;
 import com.example.androidtest.listener.ResponseListener;
 import com.example.androidtest.model.Data;
@@ -21,43 +19,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class DataAdapter extends Adapter<RecyclerView.ViewHolder> {
+public class DataListAdapter extends PagedListAdapter<Data, RecyclerView.ViewHolder> {
 
     private List<Data> dataList;
     private List<Data> filterDataList;
-    //duplicate list for filtering
     private final int VIEW_ITEM = 1;
     private final int VIEW_PROG = 0;
-    private int visibleThreshold = 2;
-    private int lastVisibleItem, totalItemCount;
-    private boolean loading;
-    private OnLoadMoreListener onLoadMoreListener;
-    RecyclerViewClickListener itemListener;
+    private RecyclerViewClickListener itemListener;
 
-    public DataAdapter(RecyclerView recyclerView, RecyclerViewClickListener itemListener) {
+    public DataListAdapter() {
+        super(Data.DIFF_CALLBACK);
+    }
+
+    public DataListAdapter(RecyclerViewClickListener itemListener) {
+        super(Data.DIFF_CALLBACK);
         this.dataList = new ArrayList<>();
-        this.filterDataList = new ArrayList<>();//initiate filter list
-
+        this.filterDataList = new ArrayList<>();
         this.itemListener = itemListener;
-        if (recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
-            final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-
-            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                @Override
-                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                    super.onScrolled(recyclerView, dx, dy);
-                    totalItemCount = linearLayoutManager.getItemCount();
-                    lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
-
-                    if (!loading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
-                        if (onLoadMoreListener != null) {
-                            onLoadMoreListener.onLoadMore();
-                        }
-                        loading = true;
-                    }
-                }
-            });
-        }
     }
 
     public void addDataList(List<Data> dataListing) {
@@ -120,13 +98,14 @@ public class DataAdapter extends Adapter<RecyclerView.ViewHolder> {
         int safePosition = holder.getAdapterPosition();
 
         if (holder instanceof DataHolder) {
-            Data data = dataList.get(safePosition);
-            holder.itemView.setOnClickListener(view -> itemListener.recyclerViewListClicked(data));
-            ((DataHolder) holder).titleText.setText(data.getTitle());
-            ((DataHolder) holder).descriptionText.setText(data.getBlurb());
-            ((DataHolder) holder).pleageText.setText(String.format("Pledge - %s %s", data.getAmtPledged(), data.getCurrency()));
-            ((DataHolder) holder).backersText.setText(String.format("Backers - %s", data.getNumBackers()));
-
+            Data data = getItem(safePosition);
+            if (data != null) {
+                holder.itemView.setOnClickListener(view -> itemListener.recyclerViewListClicked(data));
+                ((DataHolder) holder).titleText.setText(data.getTitle());
+                ((DataHolder) holder).descriptionText.setText(data.getBlurb());
+                ((DataHolder) holder).pleageText.setText(String.format("Pledge - %s %s", data.getAmtPledged(), data.getCurrency()));
+                ((DataHolder) holder).backersText.setText(String.format("Backers - %s", data.getNumBackers()));
+            }
         } else {
             ((ProgressHolder) holder).progressBar.setIndeterminate(true);
         }
@@ -142,13 +121,6 @@ public class DataAdapter extends Adapter<RecyclerView.ViewHolder> {
         return dataList.size();
     }
 
-    public void setLoaded() {
-        loading = false;
-    }
-
-    public void setOnLoadMoreListener(OnLoadMoreListener onLoadMoreListener) {
-        this.onLoadMoreListener = onLoadMoreListener;
-    }
 
     protected class DataHolder extends RecyclerView.ViewHolder {
 

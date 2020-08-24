@@ -1,4 +1,4 @@
-package com.example.androidtest.adapter;
+package com.example.androidtest.listener;
 
 public interface ResponseListener {
 

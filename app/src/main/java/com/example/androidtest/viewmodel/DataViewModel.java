@@ -7,7 +7,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.androidtest.model.Data;
-import com.example.androidtest.network.RestClient;
+import com.example.androidtest.repository.network.RestClient;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class DataViewModel extends ViewModel {
 
     public void callTheApi(int page, int count) {
 
-        Call<List<Data>> listCall = RestClient.getInstance().getList(page, count);
+        Call<List<Data>> listCall = RestClient.getInstance().getList(page);
 
         if (listCall != null) {
             listCall.enqueue(new Callback<List<Data>>() {
